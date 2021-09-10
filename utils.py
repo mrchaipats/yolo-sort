@@ -5,3 +5,6 @@ def linear_assignment(cost_matrix):
     x, y = linear_sum_assignment(cost_matrix)
     return np.array(list(zip(x, y)))
 
+
+def associate_detections_to_trackers(detections, trackers, iou_threshold=0.3):
+    pass
