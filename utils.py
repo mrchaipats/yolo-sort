@@ -35,7 +35,53 @@ def iou_batch(bb_test, bb_gt):
 
 
 def associate_detections_to_trackers(detections, trackers, iou_threshold=0.3):
-    pass
+    """
+
+        :param detections: list of detections detected by object detector
+        :param trackers: list of tracked objects, each is represented with [x1, y1, x2, y2, KalmanBoxTracker.id]
+        :param iou_threshold: minimum intersection over union required for matching
+        :return:
+        """
+
+    if len(trackers) == 0:
+        return np.empty((0, 2), dtype=int), np.arange(len(detections)), np.empty((0, 5), dtype=int)
+
+    iou_matrix = iou_batch(detections, trackers)
+
+    if min(iou_matrix.shape) > 0:
+        a = (iou_matrix > iou_threshold).astype(np.int32)
+        if a.sum(1).max() == 1 and a.sum(0).max() == 1:
+            matched_indices = np.stack(np.where(a), axis=1)
+        else:
+            # minimize negative iou is the same as maximize positive iou
+            matched_indices = linear_assignment(-iou_matrix)
+    else:
+        matched_indices = np.empty(shape=(0, 2))
+
+    unmatched_detections = []
+    for idx, detection in enumerate(detections):
+        if idx not in matched_indices[:, 0]:
+            unmatched_detections.append(idx)
+
+    unmatched_trackers = []
+    for idx, track in enumerate(trackers):
+        if idx not in matched_indices[:, 1]:
+            unmatched_trackers.append(idx)
+
+    # filter out matched with low IOU
+    matches = []
+    for pair in matched_indices:
+        if iou_matrix[pair[0], pair[1]] < iou_threshold:
+            unmatched_detections.append(pair[0])
+            unmatched_trackers.append(pair[1])
+        else:
+            matches.append(pair.reshape(1, 2))
+    if len(matches) == 0:
+        matches = np.empty((0, 2), dtype=int)
+    else:
+        matches = np.concatenate(matches, axis=0)
+
+    return matches, np.array(unmatched_detections), np.array(unmatched_trackers)
 
 
 def convert_bbox_to_z(bbox):
