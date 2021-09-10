@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.ma as ma
 
-from utils import associate_detections_to_trackers
 from kalman import KalmanBoxTracker
+from utils import associate_detections_to_trackers
 
 
 class Sort:
@@ -22,7 +22,7 @@ class Sort:
 
         for t, track in enumerate(tracks):
             position = self.trackers[t].predict()[0]
-            tracks[:] = [position[0], position[1], position[2], position[3], 0]
+            track[:] = [position[0], position[1], position[2], position[3], 0]
             if np.any(np.isnan(position)):
                 to_del.append(t)
 
