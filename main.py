@@ -78,7 +78,7 @@ def main():
                     img_path = os.path.join('mot_benchmark', args.phase, seq_filename, 'img1', f'{frame:06d}.jpg')
                     img = io.imread(img_path)
                     ax1.imshow(img)
-                    plt.title(seq_filename + ' Tracked Tragets')
+                    plt.title(seq_filename + ' Tracked Targets')
 
                 start_time = time.time()
                 trackers = mot_tracker.update(detections)
