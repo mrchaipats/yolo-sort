@@ -45,17 +45,28 @@ def main():
     total_frames = 0
     colors = np.random.rand(32, 3)  # used only for display
 
+    if args.display:
+        if not os.path.exists('mot_benchmark'):
+            print('\n\tERROR: mot_benchmark link not found!')
+            print('\n\n\tCREATE a symbolic link to the MOT benchmark')
+            print('\nE.g.\n\n\t$ ln -s /path/to/MOT15 mot_benchmark\n\n')
+
+        plt.ion()
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111, aspect='equal')
+
+    if not os.path.exists('output'):
+        os.makedirs('output')
+
     pattern = os.path.join(args.seq_path, args.phase, '*', 'det', 'det.txt')
     for seq_detections_filepath in glob.glob(pattern):
-        seq_filename = seq_detections_filepath[pattern.find('*'):].split(os.path.sep)[0]
-        seq_detections = np.loadtxt(seq_detections_filepath, delimiter=',')
 
         mot_tracker = Sort(max_age=args.max_age,
                            min_hits=args.min_hits,
                            iou_threshold=args.iou_threshold)
 
-        if not os.path.exists('output'):
-            os.makedirs('output')
+        seq_filename = seq_detections_filepath[pattern.find('*'):].split(os.path.sep)[0]
+        seq_detections = np.loadtxt(seq_detections_filepath, delimiter=',')
 
         with open(os.path.join('output', f'{seq_filename}.txt'), 'w') as out_file:
             print(f'Processing {seq_filename}')
@@ -66,15 +77,6 @@ def main():
                 total_frames += 1
 
                 if args.display:
-                    if not os.path.exists('mot_benchmark'):
-                        print('\n\tERROR: mot_benchmark link not found!')
-                        print('\n\n\tCREATE a symbolic link to the MOT benchmark')
-                        print('\nE.g.\n\n\t$ ln -s /path/to/MOT15 mot_benchmark\n\n')
-
-                    plt.ion()
-                    fig = plt.figure()
-                    ax1 = fig.add_subplot(111, aspect='equal')
-
                     img_path = os.path.join('mot_benchmark', args.phase, seq_filename, 'img1', f'{frame:06d}.jpg')
                     img = io.imread(img_path)
                     ax1.imshow(img)
